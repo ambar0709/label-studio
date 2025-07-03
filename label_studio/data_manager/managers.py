@@ -267,6 +267,57 @@ def apply_filters(queryset, filters, project, request):
 
     for _filter in filters.items:
 
+        # Handle annotation content filters
+        if _filter.filter.startswith('filter:tasks:annotation_'):
+            from data_manager.annotation_filters import AnnotationContentFilter
+            
+            field_name = _filter.filter.replace('filter:tasks:', '')
+            
+            if field_name == 'annotation_label':
+                q = AnnotationContentFilter._get_label_q(_filter.value, _filter.operator)
+                filter_expressions.append(q)
+                continue
+                
+            elif field_name == 'annotation_choice':
+                # For choices, we might need additional context like from_name
+                # Check if value is a dict with from_name
+                if isinstance(_filter.value, dict) and 'choice' in _filter.value:
+                    choice_value = _filter.value['choice']
+                    from_name = _filter.value.get('from_name')
+                else:
+                    choice_value = _filter.value
+                    from_name = None
+                q = AnnotationContentFilter._get_choice_q(choice_value, from_name, _filter.operator)
+                filter_expressions.append(q)
+                continue
+                
+            elif field_name == 'annotation_text':
+                from_name = None
+                if isinstance(_filter.value, dict) and 'text' in _filter.value:
+                    text_content = _filter.value['text']
+                    from_name = _filter.value.get('from_name')
+                else:
+                    text_content = _filter.value
+                q = AnnotationContentFilter._get_text_q(text_content, from_name, _filter.operator)
+                filter_expressions.append(q)
+                continue
+                
+            elif field_name == 'annotation_type':
+                q = AnnotationContentFilter._get_exists_q(_filter.value, 'exists' if _filter.operator != 'not_equal' else 'not_exists')
+                filter_expressions.append(q)
+                continue
+                
+            elif field_name == 'annotation_numeric_value':
+                from_name = None
+                if isinstance(_filter.value, dict) and 'value' in _filter.value:
+                    numeric_value = _filter.value['value']
+                    from_name = _filter.value.get('from_name')
+                else:
+                    numeric_value = _filter.value
+                q = AnnotationContentFilter._get_numeric_q(numeric_value, from_name, _filter.operator)
+                filter_expressions.append(q)
+                continue
+
         # we can also have annotations filters
         if not _filter.filter.startswith('filter:tasks:') or _filter.value is None:
             continue

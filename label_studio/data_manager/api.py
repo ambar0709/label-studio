@@ -554,3 +554,100 @@ class ProjectActionsAPI(APIView):
         code = result.pop('response_code', 200)
 
         return Response(result, status=code)
+
+
+@method_decorator(
+    name='get',
+    decorator=swagger_auto_schema(
+        tags=['Data Manager'],
+        x_fern_audiences=['internal'],
+        operation_summary='Get annotation content options',
+        operation_description='Retrieve available labels and choices from project annotations for filtering.',
+        manual_parameters=[
+            openapi.Parameter(
+                name='project',
+                type=openapi.TYPE_INTEGER,
+                in_=openapi.IN_QUERY,
+                description='Project ID',
+                required=True,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description='Annotation content options retrieved successfully',
+                examples={
+                    'application/json': {
+                        'labels': {
+                            'rectanglelabels': ['car', 'person', 'license_plate'],
+                            'polygonlabels': ['building', 'road'],
+                            'keypointlabels': ['face_landmarks'],
+                            'choices': ['nissan', 'white', 'sedan', 'CA', 'NY']
+                        },
+                        'choices': {
+                            'car_brand': ['nissan', 'toyota', 'honda'],
+                            'car_color': ['white', 'black', 'red'],
+                            'plate_state': ['CA', 'NY', 'TX']
+                        },
+                        'annotation_types': ['rectanglelabels', 'choices', 'textarea', 'rating'],
+                        'from_names': ['car_label', 'car_brand', 'car_color', 'plate_state']
+                    }
+                },
+            ),
+            400: openapi.Response(description='Invalid project ID supplied'),
+            404: openapi.Response(description='Project not found'),
+        },
+    ),
+)
+class AnnotationContentOptionsAPI(APIView):
+    permission_required = all_permissions.projects_view
+
+    def get(self, request):
+        from data_manager.annotation_filters import get_annotation_labels_from_project, get_annotation_choices_from_project
+        
+        pk = int_from_request(request.GET, 'project', None)
+        if not pk:
+            return Response({'detail': 'Project ID is required'}, status=400)
+            
+        project = generics.get_object_or_404(Project, pk=pk)
+        self.check_object_permissions(request, project)
+        
+        # Get all labels used in annotations
+        labels = get_annotation_labels_from_project(project)
+        
+        # Get all choice values used in annotations  
+        choices = get_annotation_choices_from_project(project)
+        
+        # Get unique annotation types and from_names
+        from tasks.models import Annotation
+        annotations = Annotation.objects.filter(project=project, was_cancelled=False)
+        
+        annotation_types = set()
+        from_names = set()
+        
+        for annotation in annotations.iterator():
+            if not annotation.result:
+                continue
+                
+            try:
+                if isinstance(annotation.result, str):
+                    import json
+                    result = json.loads(annotation.result)
+                else:
+                    result = annotation.result
+                    
+                for item in result:
+                    if 'type' in item:
+                        annotation_types.add(item['type'])
+                    if 'from_name' in item:
+                        from_names.add(item['from_name'])
+            except (json.JSONDecodeError, TypeError, KeyError):
+                continue
+        
+        data = {
+            'labels': labels,
+            'choices': choices,
+            'annotation_types': sorted(list(annotation_types)),
+            'from_names': sorted(list(from_names))
+        }
+        
+        return Response(data)

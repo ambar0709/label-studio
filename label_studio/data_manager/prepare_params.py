@@ -107,6 +107,16 @@ class Column(Enum):
     )
     COMMENTS = 'comments', 'Number', 'Number of comments in a task'
     UNRESOLVED_COMMENT_COUNT = 'unresolved_comment_count', 'Number', 'Number of unresolved comments in a task'
+    
+    # Annotation content filtering
+    ANNOTATION_LABEL = 'annotation_label', 'String', 'Filter by annotation label (e.g., "car", "person", "license_plate")'
+    ANNOTATION_CHOICE = 'annotation_choice', 'String', 'Filter by annotation choice value (e.g., "nissan", "white", "sedan")'
+    ANNOTATION_TEXT = 'annotation_text', 'String', 'Filter by text content in annotations'
+    ANNOTATION_TYPE = 'annotation_type', 'String', 'Filter by annotation type (rectanglelabels, choices, etc.)'
+    ANNOTATION_FROM_NAME = 'annotation_from_name', 'String', 'Filter by control name (from_name field)'
+    ANNOTATION_HAS_LABEL = 'annotation_has_label', 'Boolean', 'Whether task has annotations with specific label type'
+    ANNOTATION_COUNT = 'annotation_count', 'Number', 'Number of annotation regions in task'
+    ANNOTATION_NUMERIC_VALUE = 'annotation_numeric_value', 'Number', 'Numeric value from ratings or number inputs'
 
     def __init__(self, value, value_type, description):
         self._value_ = value

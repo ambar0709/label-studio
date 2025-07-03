@@ -89,6 +89,52 @@ def get_all_columns(project, *_):
             'target': 'tasks',
             'visibility_defaults': {'explore': True, 'labeling': False},
             'project_defined': False,
+        },
+        # --- Annotation Content Filters ---
+        {
+            'id': 'annotation_label',
+            'title': 'Annotation Label',
+            'type': 'AnnotationLabel',
+            'help': 'Filter by annotation labels (rectanglelabels, polygonlabels, etc.)',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': True, 'labeling': False},
+            'project_defined': False,
+        },
+        {
+            'id': 'annotation_choice',
+            'title': 'Annotation Choice',
+            'type': 'AnnotationChoice',
+            'help': 'Filter by annotation choice values (dropdown, radio, checkbox selections)',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': True, 'labeling': False},
+            'project_defined': False,
+        },
+        {
+            'id': 'annotation_text',
+            'title': 'Annotation Text',
+            'type': 'AnnotationText',
+            'help': 'Filter by text content in annotations',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': True, 'labeling': False},
+            'project_defined': False,
+        },
+        {
+            'id': 'annotation_type',
+            'title': 'Annotation Type',
+            'type': 'AnnotationType',
+            'help': 'Filter by annotation type (rectanglelabels, choices, textarea, etc.)',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': True, 'labeling': False},
+            'project_defined': False,
+        },
+        {
+            'id': 'annotation_numeric_value',
+            'title': 'Annotation Numeric Value',
+            'type': 'AnnotationNumeric',
+            'help': 'Filter by numeric values in annotations (ratings, number inputs)',
+            'target': 'tasks',
+            'visibility_defaults': {'explore': True, 'labeling': False},
+            'project_defined': False,
         }
     ]
 
